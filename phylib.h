@@ -82,3 +82,15 @@ typedef struct {
     double time;
     phylib_object *object[PHYLIB_MAX_OBJECTS];
 } phylib_table;
+
+//function prototypes
+phylib_object *phylib_new_rolling_ball( unsigned char number
+                                        phylib_coord *pos, 
+                                        phylib_coord *vel,
+                                        phylib_coord *acc);
+phylib_object *phylib_new_hole( phylib_coord *pos);
+
+phylib_object *phylib_new_hcushion( double y);
+phylib_object *phylibe_new_vcushion( double x);
+
+phylib_table *phylib_new_table( void);
