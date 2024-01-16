@@ -15,5 +15,5 @@ phylib.o:  phylib.c phylib.h
 main.o:  main.c phylib.h
 	$(CC) $(FLAGS) -c main.c -o main.o
 
-phyprog:  main.o libphylib.so
+phylib:  main.o libphylib.so
 	$(CC) main.o -L. -lphylib -o phyprog
