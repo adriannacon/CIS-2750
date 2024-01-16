@@ -84,7 +84,7 @@ typedef struct {
 } phylib_table;
 
 //function prototypes
-phylib_object *phylib_new_rolling_ball( unsigned char number
+phylib_object *phylib_new_rolling_ball( unsigned char number,
                                         phylib_coord *pos, 
                                         phylib_coord *vel,
                                         phylib_coord *acc);
