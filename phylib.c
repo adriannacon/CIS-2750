@@ -102,3 +102,47 @@ double phylib_dot_product( phylib_coord a, phylib_coord b){
 
     return dotProduct;
 }
+
+double phylib_distance( phylib_object *obj1, phylib_object *obj2){
+    //can assume obj1 is ALWAYS a rolling ball
+
+    //get position of obj1
+    phylib_coord ballPos = obj1->obj.rolling_ball.pos;
+
+    //calculate distance based on what obj2 is
+    switch (obj2->type){
+        case PHYLIB_ROLLING_BALL:
+        //auto moves to next case
+        case PHYLIB_STILL_BALL: {
+            //calc distance between centers and sub the diameter
+            phylib_coord otherBallPos = obj2->obj.still_ball.pos;
+            //Reference: https://www.ibm.com/docs/en/i/7.1?topic=functions-hypot-calculate-hypotenuse
+            double distance = hypot( ballPos.x - otherBallPos.x, ballPos.y - otherBallPos.y);
+            return (distance - PHYLIB_BALL_DIAMETER);
+        }
+
+        case PHYLIB_HOLE: {
+            //calc distance between center of ball and hole then sub the hole_radius
+            phylib_coord holePos = obj2->obj.hole.pos;
+            double distance = hypot( ballPos.x - holePos.x, ballPos.y - holePos.y);
+            return (distance - PHYLIB_HOLE_RADIUS);
+        }
+
+        case PHYLIB_HCUSHION: {
+            //calc distance between ball and h cushion then sub ball radius
+            //Reference: https://www.ibm.com/docs/en/i/7.4?topic=functions-fabs-calculate-floating-point-absolute-value
+            double distance = fabs(ballPos.y - obj2->obj.hcushion.y);
+            return (distance - PHYLIB_BALL_RADIUS);
+        }
+
+        case PHYLIB_VCUSHION: {
+            //calc distance between ball and h cushion then sub ball radius
+            //Reference: https://www.ibm.com/docs/en/i/7.4?topic=functions-fabs-calculate-floating-point-absolute-value
+            double distance = fabs(ballPos.x - obj2->obj.vcushion.x);
+            return (distance - PHYLIB_BALL_RADIUS);
+        }
+
+        default:
+            return -1.0; //obj2 isnt valid type
+    }
+}
