@@ -1,6 +1,6 @@
 #include "phylib.h"
 
-#include <stdin.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
@@ -59,5 +59,18 @@ void phylib_add_object( phylib_table *table, phylib_object *object){
 }
 
 void phylib_free_table( phylib_table *table){
+    if (table == NULL){ //check if inputted table is NULL
+        return; //do nothing
+    }
 
+    //free every non-NULL pter in obj array
+    for (int i =0; i < PHYLIB_MAX_OBJECTS; i++){
+        if (table->object[i] != NULL){
+            free(table->object[i]); //free the obj
+            table->object[i] = NULL; //set to NULL
+        }
+    }
+    
+    //free whole table
+    free(table);
 }
