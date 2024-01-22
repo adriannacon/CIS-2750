@@ -70,7 +70,35 @@ void phylib_free_table( phylib_table *table){
             table->object[i] = NULL; //set to NULL
         }
     }
-    
+
     //free whole table
     free(table);
+}
+
+phylib_coord phylib_sub( phylib_coord c1, phylib_coord c2){
+    phylib_coord result;
+
+    //calculate the differences
+    result.x = c1.x - c2.x; //x coord
+    result.y = c1.y - c2.y; //y coord
+
+    return result;
+}
+
+double phylib_length( phylib_coord c){
+    //calculate length w Pythagorean Theorm -> z^2 = x^2 + y^2
+    double x_sqred = c.x*c.x;
+    double y_sqred = c.y*c.y;
+
+    //Reference: https://www.upgrad.com/tutorials/software-engineering/c-tutorial/sqrt-in-c/#:~:text=In%20C%20programming%20the%20square,h%3E%20header%20file.
+    double length = sqrt(x_sqred + y_sqred);
+
+    return length;
+}
+
+double phylib_dot_product( phylib_coord a, phylib_coord b){
+    //Reference: utilized understanding from CIS*2750 Lab 1
+    double dotProduct = (a.x*b.x) + (a.y*b.y);
+
+    return dotProduct;
 }
