@@ -22,3 +22,19 @@ void phylib_copy_object(phylib_object **dest, phylib_object **src){
     }
 }
 
+phylib_table *phylib_copy_table( phylib_table *table){
+    if (table == NULL){ //check if inputted table is NULL
+        return NULL; //nothing to copy
+    }
+
+    //allocate mem for new table
+    phylib_table *copiedTable = (phylib_table *)malloc(sizeof(phylib_table));
+
+    //check mem allocation
+    if (copiedTable != NULL){
+       //Reference: https://cplusplus.com/reference/cstring/memcpy/
+        memcpy(copiedTable, table, sizeof(phylib_table));
+    }
+
+    return copiedTable; //return copied table
+}
