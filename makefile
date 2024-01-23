@@ -1,19 +1,16 @@
 CC = clang
-CFLAGS = -Wall -std=c99 -pedantic
+CFLAGS = -Wall -std=c99 -pedantic -g
 
-all:  phylib
+all: test
 
-clean:  
-	rm -f *.o *.so phylib
+clean:
+	rm -f *.o *.so phylib test
 
-libphylib.so: phylib.o
-	$(CC) phylib.o -shared -o libphylib.so
-
-phylib.o:  phylib.c phylib.h
+phylib.o: phylib.c phylib.h
 	$(CC) $(CFLAGS) -c phylib.c -fPIC -o phylib.o
 
-main.o:  main.c phylib.h
-	$(CC) $(FLAGS) -c main.c -o main.o
+libphylib.so: phylib.o
+	$(CC) -shared -o libphylib.so phylib.o
 
-phylib:  main.o libphylib.so
-	$(CC) main.o -L. -lphylib -o phylib
+test: A1test1.c phylib.h libphylib.so
+	$(CC) $(CFLAGS) -o test A1test1.c -L. -lphylib -lm
