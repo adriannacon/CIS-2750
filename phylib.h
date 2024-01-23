@@ -93,7 +93,7 @@ phylib_object *phylib_new_vcushion( double x);
 
 phylib_table *phylib_new_table( void);
 
-//Part II declarations
+//Part II fn declarations
 void phylib_copy_object( phylib_object **dest, phylib_object **src);
 phylib_table *phylib_copy_table( phylib_table *table);
 void phylib_add_object( phylib_table *table, phylib_object *object);
@@ -102,3 +102,10 @@ phylib_coord phylib_sub( phylib_coord c1, phylib_coord c2);
 double phylib_length( phylib_coord c);
 double phylib_dot_product( phylib_coord a, phylib_coord b);
 double phylib_distance( phylib_object *obj1, phylib_object *obj2);
+
+//Part III fn declarations
+void phylib_roll( phylib_object *new, phylib_object *old, double time);
+unsigned char phylib_stopped( phylib_object *object);
+void phylib_bounce( phylib_object **a, phylib_object **b);
+unsigned char phylib_rolling( phylib_table *t);
+phylib_table *phylib_segment( phylib_table *table);
