@@ -1,5 +1,4 @@
 // constants
-
 #define PHYLIB_BALL_RADIUS (28.5) //mm
 #define PHYLIB_BALL_DIAMETER (2*PHYLIB_BALL_RADIUS)
 
