@@ -91,6 +91,16 @@ phylib_object *phylib_new_rolling_ball( unsigned char number,
 phylib_object *phylib_new_hole( phylib_coord *pos);
 
 phylib_object *phylib_new_hcushion( double y);
-phylib_object *phylibe_new_vcushion( double x);
+phylib_object *phylib_new_vcushion( double x);
 
 phylib_table *phylib_new_table( void);
+
+//Part II declarations
+void phylib_copy_object( phylib_object **dest, phylib_object **src);
+phylib_table *phylib_copy_table( phylib_table *table);
+void phylib_add_object( phylib_table *table, phylib_object *object);
+void phylib_free_table( phylib_table *table);
+phylib_coord phylib_sub( phylib_coord c1, phylib_coord c2);
+double phylib_length( phylib_coord c);
+double phylib_dot_product( phylib_coord a, phylib_coord b);
+double phylib_distance( phylib_object *obj1, phylib_object *obj2);
