@@ -287,8 +287,38 @@ double phylib_distance( phylib_object *obj1, phylib_object *obj2){
 
 //PART 3 Functions!
 void phylib_roll( phylib_object *new, phylib_object *old, double time){
-    printf("phylib_roll");
+    //check if null
+    if (new == NULL || old == NULL){ //check if inputted table is NULL
+        return; //do nothing
+    }
+
+    //make sure they are rolling balls
+    if (new->type != PHYLIB_ROLLING_BALL || old->type != PHYLIB_ROLLING_BALL){ //check if inputted table is NULL
+        return; //do nothing
+    }
+
+    //p = p1 + v1t + 0.5a1t^2
+    //position update for x direction
+    double xPos = old->obj.rolling_ball.pos.x + (old->obj.rolling_ball.vel.x*time) + (0.5)*old->obj.rolling_ball.acc.x*(time*time);
+    new->obj.rolling_ball.pos.x = xPos;
+
+    //position update for y direction
+    double yPos = old->obj.rolling_ball.pos.y + (old->obj.rolling_ball.vel.y*time) + (0.5)*old->obj.rolling_ball.acc.y*(time*time);
+    new->obj.rolling_ball.pos.y = yPos;
+
+    //v = v1 + a1t
+    //velocity update for x direction
+    double xVel = old->obj.rolling_ball.vel.x + (old->obj.rolling_ball.vel.x*time);
+    new->obj.rolling_ball.vel.x = xVel;
+
+    //velocity update for y direction
+    double yVel = old->obj.rolling_ball.vel.y + (old->obj.rolling_ball.vel.y*time);
+    new->obj.rolling_ball.vel.y = yVel;
+
+    //check for velocity sign change by multiplying new and old vels if neg then need to set
+    if ()
 }
+
 /*
 unsigned char phylib_stopped( phylib_object *object){
 
