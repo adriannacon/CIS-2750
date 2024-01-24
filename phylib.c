@@ -315,11 +315,22 @@ void phylib_roll( phylib_object *new, phylib_object *old, double time){
     double yVel = old->obj.rolling_ball.vel.y + (old->obj.rolling_ball.vel.y*time);
     new->obj.rolling_ball.vel.y = yVel;
 
-    //check for velocity sign change by multiplying new and old vels if neg then need to set
-    if ()
+    //check for x velocity sign change by multiplying new and old vels if neg then need to set to 0.0
+    //Reference: this method was discussed in class by Dr. Stefan Kremer
+    if ((new->obj.rolling_ball.vel.x*old->obj.rolling_ball.vel.x) < 0.0){
+        new->obj.rolling_ball.vel.x = 0.0; //sets x velocity to 0.0
+        new->obj.rolling_ball.acc.x = 0.0;  //sets x acceleration to 0.0
+    }
+
+    //check for y velocity sign change by multiplying new and old vels if neg then need to set
+    //Reference: this method was discussed in class by Dr. Stefan Kremer
+    if ((new->obj.rolling_ball.vel.y*old->obj.rolling_ball.vel.y) < 0.0){
+        new->obj.rolling_ball.vel.y = 0.0; //sets x velocity to 0.0
+        new->obj.rolling_ball.acc.y = 0.0;  //sets x acceleration to 0.0
+    }
 }
 
-/*
+
 unsigned char phylib_stopped( phylib_object *object){
 
 }
@@ -336,4 +347,4 @@ phylib_table *phylib_segment( phylib_table *table){
 
 
 }
-*/
+
