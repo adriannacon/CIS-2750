@@ -107,7 +107,7 @@ phylib_object *phylib_new_vcushion( double x){
 
 phylib_table *phylib_new_table( void){
     //allocate mem
-    phylib_table *newTable = (phylib_object *)malloc(sizeof(phylib_object));
+    phylib_table *newTable = (phylib_table *)malloc(sizeof(phylib_table));
 
     //check if NULL
     if ( newTable == NULL){
