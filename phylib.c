@@ -244,41 +244,47 @@ double phylib_distance( phylib_object *obj1, phylib_object *obj2){
     phylib_coord ballPos = obj1->obj.rolling_ball.pos;
 
     //calculate distance based on what obj2 is
+    double distance = 0.0;
     switch (obj2->type){
         case PHYLIB_ROLLING_BALL:
         //auto moves to next case
-        case PHYLIB_STILL_BALL: {
+        case PHYLIB_STILL_BALL:
             //calc distance between centers and sub the diameter
             phylib_coord otherBallPos = obj2->obj.still_ball.pos;
             //Reference: https://www.ibm.com/docs/en/i/7.1?topic=functions-hypot-calculate-hypotenuse
-            double distance = hypot( ballPos.x - otherBallPos.x, ballPos.y - otherBallPos.y);
-            return (distance - PHYLIB_BALL_DIAMETER);
-        }
+            distance = hypot( ballPos.x - otherBallPos.x, ballPos.y - otherBallPos.y);
+            distance = distance - PHYLIB_BALL_DIAMETER;
+            break;
 
         case PHYLIB_HOLE: {
             //calc distance between center of ball and hole then sub the hole_radius
             phylib_coord holePos = obj2->obj.hole.pos;
-            double distance = hypot( ballPos.x - holePos.x, ballPos.y - holePos.y);
-            return (distance - PHYLIB_HOLE_RADIUS);
+            distance = hypot( ballPos.x - holePos.x, ballPos.y - holePos.y);
+            distance = distance - PHYLIB_HOLE_RADIUS;
+            break;
         }
 
         case PHYLIB_HCUSHION: {
             //calc distance between ball and h cushion then sub ball radius
             //Reference: https://www.ibm.com/docs/en/i/7.4?topic=functions-fabs-calculate-floating-point-absolute-value
-            double distance = fabs(ballPos.y - obj2->obj.hcushion.y);
-            return (distance - PHYLIB_BALL_RADIUS);
+            distance = fabs(ballPos.y - obj2->obj.hcushion.y);
+            distance = distance - PHYLIB_BALL_RADIUS;
+            break;
         }
 
         case PHYLIB_VCUSHION: {
             //calc distance between ball and h cushion then sub ball radius
             //Reference: https://www.ibm.com/docs/en/i/7.4?topic=functions-fabs-calculate-floating-point-absolute-value
-            double distance = fabs(ballPos.x - obj2->obj.vcushion.x);
-            return (distance - PHYLIB_BALL_RADIUS);
+            distance = fabs(ballPos.x - obj2->obj.vcushion.x);
+            distance = distance - PHYLIB_BALL_RADIUS;
+            break;
         }
 
         default:
             return -1.0; //obj2 isnt valid type
     }
+
+    return distance;
 }
 
 //PART 3 Functions!
@@ -330,14 +336,98 @@ unsigned char phylib_stopped( phylib_object *object){
         return 0; ///did not convert ball bc DNE
     }
     
-    
     if (object->type != PHYLIB_ROLLING_BALL){ //check if obj is a rolling ball
         return 0; //did not convert ball bc already still ball
+    }
+
+    //calculate speed -> length of its velocity
+    double speed = phylib_length(object->obj.rolling_ball.vel);
+
+    //check speed against epsilon
+    if (speed > PHYLIB_VEL_EPSILON){
+        return 0; //did not convert ball 
+    } else{ //speed < EPSILON
+        object->type = PHYLIB_STILL_BALL;
+        return 1; //converted to still ball
     }
 }
 
 void phylib_bounce( phylib_object **a, phylib_object **b){
+    //can assume object a is ALWAYS a rolling ball
 
+    if( *a == NULL || *b == NULL){ //check if null
+        return; //do nothing
+    }
+    
+    //bounce is based on what b is
+    switch ((*b)->type){
+        case PHYLIB_HCUSHION:
+            //reverse sign of vel and acc in y direction
+            (*a)->obj.rolling_ball.vel.y = -1*(*a)->obj.rolling_ball.vel.y;
+            (*a)->obj.rolling_ball.acc.y = -1*(*a)->obj.rolling_ball.acc.y;
+            break;
+
+        case PHYLIB_VCUSHION:
+            //reverse sign of vel and acc in x direction
+            (*a)->obj.rolling_ball.vel.x = -1*(*a)->obj.rolling_ball.vel.x;
+            (*a)->obj.rolling_ball.acc.x = -1*(*a)->obj.rolling_ball.acc.x;
+            break;
+
+        case PHYLIB_HOLE:
+            //free a and set to null
+            free(a);
+            (*a) = NULL;
+            break;
+        
+        case PHYLIB_STILL_BALL: 
+            //'upgrade' to a rolling ball 
+            (*a)->type = PHYLIB_ROLLING_BALL;
+            //auto moves to next case
+        case PHYLIB_ROLLING_BALL:
+            //calculate position of a wrt b
+            phylib_coord r_ab = phylib_sub((*a)->obj.rolling_ball.pos, (*b)->obj.rolling_ball.pos); //phylib_sub will find difference
+
+            //calculate relative vel of a wrt b
+            phylib_coord v_rel = phylib_sub((*a)->obj.rolling_ball.vel, (*b)->obj.rolling_ball.vel); //phylib_sub will find difference
+
+            //calculate normal vector
+            //divide x and y of r_ab by length of r_ab
+            double length_r_ab = phylib_length(r_ab); //fn will calculate length
+            phylib_coord n = {(r_ab.x/length_r_ab), (r_ab.y/length_r_ab)};
+
+            //calculate the ratio of the relative velocity by dot product
+            double v_rel_n = phylib_dot_product(v_rel, n); //fn will calculate dot product
+
+            //update the x and y velocities of a
+            //velocity = velocity - v_rel_n*n.x
+            (*a)->obj.rolling_ball.vel.x = (*a)->obj.rolling_ball.vel.x - (v_rel_n*n.x);
+            (*a)->obj.rolling_ball.vel.y = (*a)->obj.rolling_ball.vel.y - (v_rel_n*n.y);
+
+            //update the x and y velocities of b
+            //velocity = velocity + v_rel_n*n.x
+            (*b)->obj.rolling_ball.vel.x = (*b)->obj.rolling_ball.vel.x + (v_rel_n*n.x);
+            (*b)->obj.rolling_ball.vel.y = (*b)->obj.rolling_ball.vel.y + (v_rel_n*n.y);
+
+            //compute speeds of a & b -> length of its velocity
+            double aSpeed = phylib_length((*a)->obj.rolling_ball.vel);
+            double bSpeed = phylib_length((*b)->obj.rolling_ball.vel);
+
+            //check if a's speed is GREATER THAN epsilon
+            //if true acc = (-vel/speed)*DRAG
+            if (aSpeed > PHYLIB_VEL_EPSILON){
+                (*a)->obj.rolling_ball.acc.x = -((*a)->obj.rolling_ball.vel.x/aSpeed)*PHYLIB_DRAG;
+                (*a)->obj.rolling_ball.acc.y = -((*a)->obj.rolling_ball.vel.y/aSpeed)*PHYLIB_DRAG;
+            }
+            
+            //check if b's speed is GREATER THAN epsilon
+            //if true acc = (-vel/speed)*DRAG
+            if (bSpeed > PHYLIB_VEL_EPSILON){
+                (*b)->obj.rolling_ball.acc.x = -((*b)->obj.rolling_ball.vel.x/bSpeed)*PHYLIB_DRAG;
+                (*b)->obj.rolling_ball.acc.y = -((*b)->obj.rolling_ball.vel.y/bSpeed)*PHYLIB_DRAG;
+            }
+            break;
+            
+    }
 }
 
 unsigned char phylib_rolling( phylib_table *t){
