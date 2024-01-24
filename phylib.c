@@ -6,6 +6,143 @@
 #include <string.h>
 #include <math.h>
 
+//Part I Functions!
+phylib_object *phylib_new_still_ball( unsigned char number, phylib_coord *pos){
+    //allocate mem
+    phylib_object *newSBall = (phylib_object *)malloc(sizeof(phylib_object));
+
+    //check if NULL
+    if ( newSBall == NULL){
+        return NULL; //if malloc fails
+    }
+
+    //set type
+    newSBall->type = PHYLIB_STILL_BALL;
+
+    //set info
+    newSBall->obj.still_ball.number = number;
+    newSBall->obj.still_ball.pos = *pos;
+
+    return newSBall; //return the pter
+}
+
+phylib_object *phylib_new_rolling_ball( unsigned char number, phylib_coord *pos, phylib_coord *vel, phylib_coord *acc){
+    //allocate mem
+    phylib_object *newRBall = (phylib_object *)malloc(sizeof(phylib_object));
+
+    //check if NULL
+    if ( newRBall == NULL){
+        return NULL; //if malloc fails
+    }
+
+    //set type
+    newRBall->type = PHYLIB_ROLLING_BALL;
+
+    //set info
+    newRBall->obj.rolling_ball.number = number;
+    newRBall->obj.rolling_ball.pos = *pos;
+    newRBall->obj.rolling_ball.vel = *vel;
+    newRBall->obj.rolling_ball.acc = *acc;
+
+    return newRBall; //return the pter
+}
+
+
+phylib_object *phylib_new_hole( phylib_coord *pos){
+    //allocate mem
+    phylib_object *newHole = (phylib_object *)malloc(sizeof(phylib_object));
+
+    //check if NULL
+    if ( newHole == NULL){
+        return NULL; //if malloc fails
+    }
+
+    //set type
+    newHole->type = PHYLIB_HOLE;
+
+    //set info
+    newHole->obj.hole.pos = *pos;
+
+    return newHole; //return the pter
+}
+
+
+phylib_object *phylib_new_hcushion( double y){
+    //allocate mem
+    phylib_object *newHCushion = (phylib_object *)malloc(sizeof(phylib_object));
+
+    //check if NULL
+    if ( newHCushion == NULL){
+        return NULL; //if malloc fails
+    }
+
+    //set type
+    newHCushion->type = PHYLIB_HCUSHION;
+
+    //set info
+    newHCushion->obj.hcushion.y = y;
+
+    return newHCushion; //return the pter
+}
+
+
+phylib_object *phylib_new_vcushion( double x){
+    //allocate mem
+    phylib_object *newVCushion = (phylib_object *)malloc(sizeof(phylib_object));
+
+    //check if NULL
+    if ( newVCushion == NULL){
+        return NULL; //if malloc fails
+    }
+
+    //set type
+    newVCushion->type = PHYLIB_VCUSHION;
+
+    //set info
+    newVCushion->obj.vcushion.x = x;
+
+    return newVCushion; //return the pter
+}
+
+
+phylib_table *phylib_new_table( void){
+    //allocate mem
+    phylib_table *newTable = (phylib_object *)malloc(sizeof(phylib_object));
+
+    //check if NULL
+    if ( newTable == NULL){
+        return NULL; //if malloc fails
+    }
+
+    //set time to 0.0
+    newTable->time = 0.0;
+
+    //initalize the obj array elements to NULL
+    for (int i =0; i < PHYLIB_MAX_OBJECTS; i++){
+        newTable->object[i] = NULL;
+    }
+
+    //add elements using above phylib_new_<obj> fns
+    //4 CUSHIONS
+    newTable->object[0] = phylib_new_hcushion(0.0); //horizontal cushion at y=0.0
+    newTable->object[1] = phylib_new_hcushion(PHYLIB_TABLE_LENGTH); //horizontal cushion at y=2700.0
+    newTable->object[2] = phylib_new_vcushion(0.0); //horizontal cushion at x=0.0
+    newTable->object[3] = phylib_new_vcushion(PHYLIB_TABLE_WIDTH); //horizontal cushion at x=1350.0
+
+    //6 HOLES
+    newTable->object[4] = phylib_new_hole(&(phylib_coord){0.0, 0.0}); //Top L hole
+    newTable->object[5] = phylib_new_hole(&(phylib_coord){0.0, PHYLIB_TABLE_WIDTH}); //Mid L hole
+    newTable->object[6] = phylib_new_hole(&(phylib_coord){0.0, PHYLIB_TABLE_LENGTH}); //Bottom L hole
+    newTable->object[7] = phylib_new_hole(&(phylib_coord){PHYLIB_TABLE_WIDTH, 0.0}); //Top R hole
+    newTable->object[8] = phylib_new_hole(&(phylib_coord){PHYLIB_TABLE_WIDTH, PHYLIB_TABLE_WIDTH}); //Mid R hole
+    newTable->object[9] = phylib_new_hole(&(phylib_coord){PHYLIB_TABLE_WIDTH, PHYLIB_TABLE_LENGTH}); //Bottom R hole
+
+    return newTable;
+}
+
+
+//PART II Functions!
+
 void phylib_copy_object( phylib_object **dest, phylib_object **src){
     if (*src == NULL){ //check if src points to NULL
         *dest = NULL; //sets dest to NULL
@@ -147,3 +284,26 @@ double phylib_distance( phylib_object *obj1, phylib_object *obj2){
             return -1.0; //obj2 isnt valid type
     }
 }
+
+//PART 3 Functions!
+void phylib_roll( phylib_object *new, phylib_object *old, double time){
+    printf("phylib_roll");
+}
+/*
+unsigned char phylib_stopped( phylib_object *object){
+
+}
+
+void phylib_bounce( phylib_object **a, phylib_object **b){
+
+}
+
+unsigned char phylib_rolling( phylib_table *t){
+
+}
+
+phylib_table *phylib_segment( phylib_table *table){
+
+
+}
+*/
