@@ -7,6 +7,7 @@
 #include <math.h>
 
 //Part I Functions!
+
 phylib_object *phylib_new_still_ball( unsigned char number, phylib_coord *pos){
     //allocate mem
     phylib_object *newSBall = (phylib_object *)malloc(sizeof(phylib_object));
@@ -47,7 +48,6 @@ phylib_object *phylib_new_rolling_ball( unsigned char number, phylib_coord *pos,
     return newRBall; //return the pter
 }
 
-
 phylib_object *phylib_new_hole( phylib_coord *pos){
     //allocate mem
     phylib_object *newHole = (phylib_object *)malloc(sizeof(phylib_object));
@@ -65,7 +65,6 @@ phylib_object *phylib_new_hole( phylib_coord *pos){
 
     return newHole; //return the pter
 }
-
 
 phylib_object *phylib_new_hcushion( double y){
     //allocate mem
@@ -85,7 +84,6 @@ phylib_object *phylib_new_hcushion( double y){
     return newHCushion; //return the pter
 }
 
-
 phylib_object *phylib_new_vcushion( double x){
     //allocate mem
     phylib_object *newVCushion = (phylib_object *)malloc(sizeof(phylib_object));
@@ -104,7 +102,6 @@ phylib_object *phylib_new_vcushion( double x){
     return newVCushion; //return the pter
 }
 
-
 phylib_table *phylib_new_table( void){
     //allocate mem
     phylib_table *newTable = (phylib_table *)malloc(sizeof(phylib_table));
@@ -117,7 +114,7 @@ phylib_table *phylib_new_table( void){
     //set time to 0.0
     newTable->time = 0.0;
 
-    //initalize the obj array elements to NULL
+    //initalize ALL obj array elements to NULL
     for (int i =0; i < PHYLIB_MAX_OBJECTS; i++){
         newTable->object[i] = NULL;
     }
@@ -139,7 +136,6 @@ phylib_table *phylib_new_table( void){
 
     return newTable;
 }
-
 
 //PART II Functions!
 
@@ -286,14 +282,13 @@ double phylib_distance( phylib_object *obj1, phylib_object *obj2){
 }
 
 //PART 3 Functions!
+
 void phylib_roll( phylib_object *new, phylib_object *old, double time){
-    //check if null
-    if (new == NULL || old == NULL){ //check if inputted table is NULL
+    if (new == NULL || old == NULL){ //check if inputted object is NULL
         return; //do nothing
     }
 
-    //make sure they are rolling balls
-    if (new->type != PHYLIB_ROLLING_BALL || old->type != PHYLIB_ROLLING_BALL){ //check if inputted table is NULL
+    if (new->type != PHYLIB_ROLLING_BALL || old->type != PHYLIB_ROLLING_BALL){ //check if inputted ball is rolling
         return; //do nothing
     }
 
@@ -330,9 +325,15 @@ void phylib_roll( phylib_object *new, phylib_object *old, double time){
     }
 }
 
-
 unsigned char phylib_stopped( phylib_object *object){
-
+    if (object == NULL){ //check if null
+        return 0; ///did not convert ball bc DNE
+    }
+    
+    
+    if (object->type != PHYLIB_ROLLING_BALL){ //check if obj is a rolling ball
+        return 0; //did not convert ball bc already still ball
+    }
 }
 
 void phylib_bounce( phylib_object **a, phylib_object **b){
