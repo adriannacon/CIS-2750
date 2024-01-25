@@ -210,7 +210,7 @@ void phylib_free_table( phylib_table *table){
 }
 
 phylib_coord phylib_sub( phylib_coord c1, phylib_coord c2){
-    phylib_coord result = {0.0, 0.0};
+    phylib_coord result;
 
     //calculate the differences
     result.x = c1.x - c2.x; //x coord
@@ -397,10 +397,11 @@ void phylib_bounce( phylib_object **a, phylib_object **b){
             (*b)->type = PHYLIB_ROLLING_BALL;
             //auto moves to next case
         case PHYLIB_ROLLING_BALL:
+        ; //idk why this fixes my error but it does
             //calculate position of a wrt b
-            phylib_coord *aPos = (*a)->obj.rolling_ball.pos;
-            phylib_coord *bPos = (*b)->obj.rolling_ball.pos;
-            phylib_coord r_ab = phylib_sub(&aPos, &bPos); //phylib_sub will find difference
+            phylib_coord aPos = {(*a)->obj.rolling_ball.pos.x, (*a)->obj.rolling_ball.pos.y};
+            phylib_coord bPos = {(*b)->obj.rolling_ball.pos.x, (*b)->obj.rolling_ball.pos.y};
+            phylib_coord r_ab = phylib_sub(aPos, bPos); //phylib_sub will find difference
 
             //calculate relative vel of a wrt b
             phylib_coord v_rel = phylib_sub((*a)->obj.rolling_ball.vel, (*b)->obj.rolling_ball.vel); //phylib_sub will find difference
@@ -445,7 +446,6 @@ void phylib_bounce( phylib_object **a, phylib_object **b){
     }
 }
 
-
 unsigned char phylib_rolling( phylib_table *t){
     if( t == NULL){ //check if null
         return 0; //0 if NULL
@@ -465,7 +465,13 @@ unsigned char phylib_rolling( phylib_table *t){
 }
 
 phylib_table *phylib_segment( phylib_table *table){
-    if( table == NULL || phylib_rolling(table) == 0){ //checks if NULL or no rolling balls
+    if (table == NULL){ //checks if null
+        return NULL;
+    }
+        
+        
+    if (phylib_rolling(table) == 0){ //checks if  no rolling balls
+        phylib_free_table(table);
         return NULL; //returns NULL
     }
 
@@ -485,7 +491,7 @@ phylib_table *phylib_segment( phylib_table *table){
                 phylib_roll(copiedTable->object[i], table->object[i], time);
 
                 //check if rolling ball has stopped
-                if (phylib_stopped(copiedTable->object[i]) == 1){
+                if (phylib_rolling(copiedTable) == 0){
                     free(copiedTable->object[i]); //free object
                     copiedTable->object[i] = NULL; //set to NULL
                 }
@@ -502,7 +508,7 @@ phylib_table *phylib_segment( phylib_table *table){
                         double distance = phylib_distance( copiedTable->object[i], copiedTable->object[j]);
 
                         //check if distance is 0 or there are no rolling balls
-                        if (distance < 0.0 || phylib_rolling(table) ==0){
+                        if (distance < 0.0 || phylib_rolling(table) !=0 || time >= PHYLIB_MAX_TIME){
                             //apply bounce and update table
                             phylib_bounce(&copiedTable->object[i], &copiedTable->object[j]);
                             return copiedTable; //retuns new table
