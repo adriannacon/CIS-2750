@@ -210,7 +210,7 @@ void phylib_free_table( phylib_table *table){
 }
 
 phylib_coord phylib_sub( phylib_coord c1, phylib_coord c2){
-    phylib_coord result;
+    phylib_coord result = {0.0, 0.0};
 
     //calculate the differences
     result.x = c1.x - c2.x; //x coord
@@ -250,9 +250,8 @@ double phylib_distance( phylib_object *obj1, phylib_object *obj2){
         //auto moves to next case
         case PHYLIB_STILL_BALL:
             //calc distance between centers and sub the diameter
-            phylib_coord otherBallPos = obj2->obj.still_ball.pos;
             //Reference: https://www.ibm.com/docs/en/i/7.1?topic=functions-hypot-calculate-hypotenuse
-            distance = hypot( ballPos.x - otherBallPos.x, ballPos.y - otherBallPos.y);
+            distance = hypot( ballPos.x - obj2->obj.still_ball.pos.x, ballPos.y - obj2->obj.still_ball.pos.y);
             distance = distance - PHYLIB_BALL_DIAMETER;
             break;
 
@@ -289,6 +288,21 @@ double phylib_distance( phylib_object *obj1, phylib_object *obj2){
 
 //PART 3 Functions!
 
+double phylib_position_update( double currPos, double velocity, double acceleration, double time){
+    //p = p1 + v1t + 0.5a1t^2
+    double updatedPos = currPos + (velocity*time) + ((0.5)*acceleration*time*time);
+
+    return updatedPos;
+
+}
+
+double phylib_vel_update( double currVel, double acceleration, double time){
+    //v = v1 + a1t
+    double updatedVel = currVel + (acceleration*time);
+
+    return updatedVel;
+}
+
 void phylib_roll( phylib_object *new, phylib_object *old, double time){
     if (new == NULL || old == NULL){ //check if inputted object is NULL
         return; //do nothing
@@ -298,22 +312,21 @@ void phylib_roll( phylib_object *new, phylib_object *old, double time){
         return; //do nothing
     }
 
-    //p = p1 + v1t + 0.5a1t^2
     //position update for x direction
-    double xPos = old->obj.rolling_ball.pos.x + (old->obj.rolling_ball.vel.x*time) + (0.5)*old->obj.rolling_ball.acc.x*(time*time);
+    double xPos = phylib_position_update(old->obj.rolling_ball.pos.x, old->obj.rolling_ball.vel.x, old->obj.rolling_ball.acc.x, time);
     new->obj.rolling_ball.pos.x = xPos;
 
     //position update for y direction
-    double yPos = old->obj.rolling_ball.pos.y + (old->obj.rolling_ball.vel.y*time) + (0.5)*old->obj.rolling_ball.acc.y*(time*time);
+    double yPos = phylib_position_update(old->obj.rolling_ball.pos.y, old->obj.rolling_ball.vel.y, old->obj.rolling_ball.acc.y, time);
     new->obj.rolling_ball.pos.y = yPos;
 
     //v = v1 + a1t
     //velocity update for x direction
-    double xVel = old->obj.rolling_ball.vel.x + (old->obj.rolling_ball.vel.x*time);
+    double xVel = phylib_vel_update(old->obj.rolling_ball.vel.x, old->obj.rolling_ball.vel.x, time);
     new->obj.rolling_ball.vel.x = xVel;
 
     //velocity update for y direction
-    double yVel = old->obj.rolling_ball.vel.y + (old->obj.rolling_ball.vel.y*time);
+    double yVel = phylib_vel_update(old->obj.rolling_ball.vel.y, old->obj.rolling_ball.vel.y, time);
     new->obj.rolling_ball.vel.y = yVel;
 
     //check for x velocity sign change by multiplying new and old vels if neg then need to set to 0.0
@@ -352,6 +365,52 @@ unsigned char phylib_stopped( phylib_object *object){
     }
 }
 
+void phylib_rolling_ball_bounce(phylib_object **a, phylib_object **b){
+    //calculate position of a wrt b
+    phylib_coord aPos = (*a)->obj.rolling_ball.pos;
+    phylib_coord bPos = (*b)->obj.rolling_ball.pos;
+    phylib_coord r_ab = phylib_sub(aPos, bPos); //phylib_sub will find difference
+
+    //calculate relative vel of a wrt b
+    phylib_coord v_rel = phylib_sub((*a)->obj.rolling_ball.vel, (*b)->obj.rolling_ball.vel); //phylib_sub will find difference
+
+    //calculate normal vector
+    //divide x and y of r_ab by length of r_ab
+    double length_r_ab = phylib_length(r_ab); //fn will calculate length
+    phylib_coord n = {(r_ab.x/length_r_ab), (r_ab.y/length_r_ab)};
+
+    //calculate the ratio of the relative velocity by dot product
+    double v_rel_n = phylib_dot_product(v_rel, n); //fn will calculate dot product
+
+    //update the x and y velocities of a
+    //velocity = velocity - v_rel_n*n.x
+    (*a)->obj.rolling_ball.vel.x = (*a)->obj.rolling_ball.vel.x - (v_rel_n*n.x);
+    (*a)->obj.rolling_ball.vel.y = (*a)->obj.rolling_ball.vel.y - (v_rel_n*n.y);
+
+    //update the x and y velocities of b
+    //velocity = velocity + v_rel_n*n.x
+    (*b)->obj.rolling_ball.vel.x = (*b)->obj.rolling_ball.vel.x + (v_rel_n*n.x);
+    (*b)->obj.rolling_ball.vel.y = (*b)->obj.rolling_ball.vel.y + (v_rel_n*n.y);
+
+    //compute speeds of a & b -> length of its velocity
+    double aSpeed = phylib_length((*a)->obj.rolling_ball.vel);
+    double bSpeed = phylib_length((*b)->obj.rolling_ball.vel);
+
+    //check if a's speed is GREATER THAN epsilon
+    //if true acc = (-vel/speed)*DRAG
+    if (aSpeed > PHYLIB_VEL_EPSILON){
+        (*a)->obj.rolling_ball.acc.x = -((*a)->obj.rolling_ball.vel.x/aSpeed)*PHYLIB_DRAG;
+        (*a)->obj.rolling_ball.acc.y = -((*a)->obj.rolling_ball.vel.y/aSpeed)*PHYLIB_DRAG;
+    }
+    
+    //check if b's speed is GREATER THAN epsilon
+    //if true acc = (-vel/speed)*DRAG
+    if (bSpeed > PHYLIB_VEL_EPSILON){
+        (*b)->obj.rolling_ball.acc.x = -((*b)->obj.rolling_ball.vel.x/bSpeed)*PHYLIB_DRAG;
+        (*b)->obj.rolling_ball.acc.y = -((*b)->obj.rolling_ball.vel.y/bSpeed)*PHYLIB_DRAG;
+    }
+}
+
 void phylib_bounce( phylib_object **a, phylib_object **b){
     //can assume object a is ALWAYS a rolling ball
 
@@ -381,61 +440,87 @@ void phylib_bounce( phylib_object **a, phylib_object **b){
         
         case PHYLIB_STILL_BALL: 
             //'upgrade' to a rolling ball 
-            (*a)->type = PHYLIB_ROLLING_BALL;
+            (*b)->type = PHYLIB_ROLLING_BALL;
             //auto moves to next case
         case PHYLIB_ROLLING_BALL:
-            //calculate position of a wrt b
-            phylib_coord r_ab = phylib_sub((*a)->obj.rolling_ball.pos, (*b)->obj.rolling_ball.pos); //phylib_sub will find difference
-
-            //calculate relative vel of a wrt b
-            phylib_coord v_rel = phylib_sub((*a)->obj.rolling_ball.vel, (*b)->obj.rolling_ball.vel); //phylib_sub will find difference
-
-            //calculate normal vector
-            //divide x and y of r_ab by length of r_ab
-            double length_r_ab = phylib_length(r_ab); //fn will calculate length
-            phylib_coord n = {(r_ab.x/length_r_ab), (r_ab.y/length_r_ab)};
-
-            //calculate the ratio of the relative velocity by dot product
-            double v_rel_n = phylib_dot_product(v_rel, n); //fn will calculate dot product
-
-            //update the x and y velocities of a
-            //velocity = velocity - v_rel_n*n.x
-            (*a)->obj.rolling_ball.vel.x = (*a)->obj.rolling_ball.vel.x - (v_rel_n*n.x);
-            (*a)->obj.rolling_ball.vel.y = (*a)->obj.rolling_ball.vel.y - (v_rel_n*n.y);
-
-            //update the x and y velocities of b
-            //velocity = velocity + v_rel_n*n.x
-            (*b)->obj.rolling_ball.vel.x = (*b)->obj.rolling_ball.vel.x + (v_rel_n*n.x);
-            (*b)->obj.rolling_ball.vel.y = (*b)->obj.rolling_ball.vel.y + (v_rel_n*n.y);
-
-            //compute speeds of a & b -> length of its velocity
-            double aSpeed = phylib_length((*a)->obj.rolling_ball.vel);
-            double bSpeed = phylib_length((*b)->obj.rolling_ball.vel);
-
-            //check if a's speed is GREATER THAN epsilon
-            //if true acc = (-vel/speed)*DRAG
-            if (aSpeed > PHYLIB_VEL_EPSILON){
-                (*a)->obj.rolling_ball.acc.x = -((*a)->obj.rolling_ball.vel.x/aSpeed)*PHYLIB_DRAG;
-                (*a)->obj.rolling_ball.acc.y = -((*a)->obj.rolling_ball.vel.y/aSpeed)*PHYLIB_DRAG;
-            }
-            
-            //check if b's speed is GREATER THAN epsilon
-            //if true acc = (-vel/speed)*DRAG
-            if (bSpeed > PHYLIB_VEL_EPSILON){
-                (*b)->obj.rolling_ball.acc.x = -((*b)->obj.rolling_ball.vel.x/bSpeed)*PHYLIB_DRAG;
-                (*b)->obj.rolling_ball.acc.y = -((*b)->obj.rolling_ball.vel.y/bSpeed)*PHYLIB_DRAG;
-            }
+            //user helper fn phylib_rolling_ball_bounce
+            phylib_rolling_ball_bounce(a, b);
             break;
             
     }
 }
 
-unsigned char phylib_rolling( phylib_table *t){
 
+unsigned char phylib_rolling( phylib_table *t){
+    if( t == NULL){ //check if null
+        return 0; //0 if NULL
+    }
+
+    unsigned char numRolling = 0; //counter
+
+    //iterate through object array elements
+    for (int i =0; i < PHYLIB_MAX_OBJECTS; i++){
+        //checks if obj exists and is of type rolling_ball
+        if (t->object[i] != NULL && t->object[i]->type == PHYLIB_ROLLING_BALL){
+             numRolling++; //adds one to number of rolling_balls
+        }
+    }
+
+    return numRolling;
 }
 
 phylib_table *phylib_segment( phylib_table *table){
+    if( table == NULL || phylib_rolling(table) == 0){ //checks if NULL or no rolling balls
+        return NULL; //returns NULL
+    }
 
+    //create a copy of table
+    phylib_table *copiedTable = phylib_copy_table(table);
 
+    //initialize time
+    double time = PHYLIB_SIM_RATE;
+
+    //while loop till max time is reached
+    while( time <= PHYLIB_MAX_TIME){
+        //iterate through object array elements
+        for (int i =0; i < PHYLIB_MAX_OBJECTS; i++){
+             //checks if obj exists and is of type rolling_ball
+            if (copiedTable->object[i] != NULL && copiedTable->object[i]->type == PHYLIB_ROLLING_BALL){
+                //make roll with current time
+                phylib_roll(copiedTable->object[i], table->object[i], time);
+
+                //check if rolling ball has stopped
+                if (phylib_stopped(copiedTable->object[i] == 1)){
+                    free(copiedTable->object[i]); //free object
+                    copiedTable->object[i] == NULL; //set to NULL
+                }
+            }
+        }
+
+        //check if collision occurred and update table if needed
+        for (int i =0; i < PHYLIB_MAX_OBJECTS; i++){ //iterate through once
+             //checks if obj exists and is of type rolling_ball
+            if (copiedTable->object[i] != NULL){
+                for (int j =0; j < PHYLIB_MAX_OBJECTS; j++){ //iterate through again to compare two objs
+                    if (i != j && copiedTable->object[i] != NULL){ //checks if same obj is being compared and both are not NULL
+                        //calculate distance between two objects
+                        double distance = phylib_distance( copiedTable->object[i], copiedTable->object[j]);
+
+                        //check if distance is 0
+                        if (distance < 0.0){
+                            //apply bounce and update table
+                            phylib_bounce(&copiedTable->object[i], &copiedTable->object[j]);
+                            return copiedTable; //retuns new table
+                        }
+                    }
+                    
+                }
+            }
+        }
+
+        time += PHYLIB_SIM_RATE;
+    }
+
+    return copiedTable;
 }
 
