@@ -504,7 +504,7 @@ phylib_table *phylib_segment(phylib_table *table) {
     printf("Starting while loop\n");
     //while loop till max time is reached
     while (copiedTable->time < PHYLIB_MAX_TIME) {
-        printf("time = %6.1lf;\n", copiedTable->time);  // Add this line for debugging
+        //printf("time = %6.1lf;\n", copiedTable->time);  // Add this line for debugging
 
         //iterate through object array elements
         for (int i = 0; i < PHYLIB_MAX_OBJECTS; i++) {
@@ -517,6 +517,7 @@ phylib_table *phylib_segment(phylib_table *table) {
             phylib_copy_object(&new, &old); //copy to new object
 
             //make roll with current time
+            printf("roll fn starting\n");
             phylib_roll(new, old, copiedTable->time);
             copiedTable->object[i] = new;
 
@@ -527,12 +528,14 @@ phylib_table *phylib_segment(phylib_table *table) {
 
                 //calculate distance between two objects
                 double distance = phylib_distance(new, copiedTable->object[j]);
+                printf("distance: %f\n", distance);
 
                 //check if distance is 0 or there are no rolling balls
                 if (distance < 0.0) {
                     //apply bounce and update table
                     printf("starting bounce fn inside segement fn\n");
                     phylib_bounce(&copiedTable->object[i], &copiedTable->object[j]);
+                    printf("finishing bounce fn\n");
                     phylib_copy_object(&copiedTable->object[i], &new);
                 }
             }
@@ -544,6 +547,7 @@ phylib_table *phylib_segment(phylib_table *table) {
         }
         
         copiedTable->time += PHYLIB_SIM_RATE; //update time in table       
+        printf("time = %6.1lf;\n", copiedTable->time);  // Add this line for debugging
     }
 
     return copiedTable;
