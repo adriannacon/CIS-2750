@@ -523,6 +523,7 @@ phylib_table *phylib_segment(phylib_table *table) {
                 //break if rolling balls have stopped
                 if (phylib_stopped(new)){
                     free(new);
+                    new = NULL;
                     copiedTable->time += PHYLIB_SIM_RATE; //update time in table    
                     return copiedTable;
                 }
@@ -546,6 +547,7 @@ phylib_table *phylib_segment(phylib_table *table) {
                     }  
                 }
                 free(new);
+                new = NULL;
                 copiedTable->time += PHYLIB_SIM_RATE; //update time in table
             }
         }
