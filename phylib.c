@@ -200,7 +200,7 @@ void phylib_free_table( phylib_table *table){
     //free every non-NULL pter in obj array
     for (int i =0; i < PHYLIB_MAX_OBJECTS; i++){
         if (table->object[i] != NULL){
-            printf("freeing object %d", i);
+            //printf("freeing object %d", i);
             free(table->object[i]); //free the obj
             table->object[i] = NULL; //set to NULL
         }
@@ -208,7 +208,9 @@ void phylib_free_table( phylib_table *table){
 
     //free whole table
     free(table);
-    table = NULL;
+
+    //remake table
+    table = phylib_new_table();
 }
 
 phylib_coord phylib_sub( phylib_coord c1, phylib_coord c2){
@@ -508,46 +510,44 @@ phylib_table *phylib_segment(phylib_table *table) {
 
         //iterate through object array elements
         for (int i = 0; i < PHYLIB_MAX_OBJECTS; i++) {
-            if (copiedTable->object[i] == NULL && copiedTable->object[i]->type != PHYLIB_ROLLING_BALL) {
-                continue;
-            }
+            if (copiedTable->object[i] != NULL && copiedTable->object[i]->type == PHYLIB_ROLLING_BALL) {
+                phylib_object *old = copiedTable->object[i];
+                phylib_object *new = malloc(sizeof(phylib_object));
+                phylib_copy_object(&new, &old); //copy to new object
+            
+                //make roll with current time
+                //printf("roll fn starting\n");
+                phylib_roll(new, old, copiedTable->time);
 
-            phylib_object *old = copiedTable->object[i];
-            phylib_object *new = malloc(sizeof(phylib_object));
-            phylib_copy_object(&new, &old); //copy to new object
-
-            //make roll with current time
-            printf("roll fn starting\n");
-            phylib_roll(new, old, copiedTable->time);
-            copiedTable->object[i] = new;
-
-            for (int j = 0; j < PHYLIB_MAX_OBJECTS; j++) { //iterate through again to compare two objs
-                if (copiedTable->object[j] == NULL) { //checks if same obj is being compared and both are not NULL
-                    continue;
-                }   
-
-                //calculate distance between two objects
-                double distance = phylib_distance(new, copiedTable->object[j]);
-                printf("distance: %f\n", distance);
-
-                //check if distance is 0 or there are no rolling balls
-                if (distance < 0.0) {
-                    //apply bounce and update table
-                    printf("starting bounce fn inside segement fn\n");
-                    phylib_bounce(&copiedTable->object[i], &copiedTable->object[j]);
-                    printf("finishing bounce fn\n");
-                    phylib_copy_object(&copiedTable->object[i], &new);
+                //break if rolling balls have stopped
+                if (phylib_stopped(new)){
+                    copiedTable->object[i]->type = PHYLIB_STILL_BALL;
+                    copiedTable->time += PHYLIB_SIM_RATE; //update time in table    
+                    return copiedTable;
                 }
-            }
 
-            //break if rolling balls have stopped
-            if (phylib_stopped(new)){
-                copiedTable->object[i]->type = PHYLIB_STILL_BALL;
+                //check for collisions
+                for (int j = 0; j < PHYLIB_MAX_OBJECTS; j++) { //iterate through again to compare two objs
+                    if (copiedTable->object[j] != NULL) { //checks if same obj is being compared and both are not NULL
+                        //calculate distance between two objects
+                        double distance = phylib_distance(new, copiedTable->object[j]);
+
+                        if (distance < 0.0) {
+                            //apply bounce and update table
+                            //printf("starting bounce fn inside segement fn\n");
+                            phylib_bounce(&new, &(copiedTable->object[j]));
+                            //update object
+                            phylib_copy_object(&copiedTable->object[i], &new);
+                            //printf("finishing bounce fn\n");
+                            copiedTable->time += PHYLIB_SIM_RATE; //update time in table    
+                            return copiedTable;
+                        }
+                    }  
+                }
             }
         }
         
         copiedTable->time += PHYLIB_SIM_RATE; //update time in table       
-        printf("time = %6.1lf;\n", copiedTable->time);  // Add this line for debugging
     }
 
     return copiedTable;
