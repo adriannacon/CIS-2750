@@ -366,8 +366,9 @@ unsigned char phylib_stopped( phylib_object *object){
     double speed = phylib_length(object->obj.rolling_ball.vel);
 
     //check speed against epsilon
-    if (speed <= PHYLIB_VEL_EPSILON){
+    if (speed < PHYLIB_VEL_EPSILON){
         object->type = PHYLIB_STILL_BALL;
+        object = phylib_new_still_ball(object->obj.still_ball.number, &(object->obj.still_ball.pos));
         return 1; //converted to still ball
         
     } else{
@@ -503,7 +504,7 @@ phylib_table *phylib_segment(phylib_table *table) {
     //initialize time
     copiedTable->time = PHYLIB_SIM_RATE;
 
-    printf("Starting while loop\n");
+    //printf("Starting while loop\n");
     //while loop till max time is reached
     while (copiedTable->time < PHYLIB_MAX_TIME) {
         //printf("time = %6.1lf;\n", copiedTable->time);  // Add this line for debugging
@@ -511,39 +512,41 @@ phylib_table *phylib_segment(phylib_table *table) {
         //iterate through object array elements
         for (int i = 0; i < PHYLIB_MAX_OBJECTS; i++) {
             if (copiedTable->object[i] != NULL && copiedTable->object[i]->type == PHYLIB_ROLLING_BALL) {
-                phylib_object *old = copiedTable->object[i];
                 phylib_object *new = malloc(sizeof(phylib_object));
-                phylib_copy_object(&new, &old); //copy to new object
+                phylib_copy_object(&new, &(copiedTable->object[i])); //copy to new object
             
                 //make roll with current time
                 //printf("roll fn starting\n");
-                phylib_roll(new, old, copiedTable->time);
+                phylib_roll(new, copiedTable->object[i], copiedTable->time);
+                copiedTable->time += PHYLIB_SIM_RATE; //update time in table   
 
                 //break if rolling balls have stopped
                 if (phylib_stopped(new)){
-                    copiedTable->object[i]->type = PHYLIB_STILL_BALL;
+                    free(new);
                     copiedTable->time += PHYLIB_SIM_RATE; //update time in table    
                     return copiedTable;
                 }
 
                 //check for collisions
                 for (int j = 0; j < PHYLIB_MAX_OBJECTS; j++) { //iterate through again to compare two objs
-                    if (copiedTable->object[j] != NULL) { //checks if same obj is being compared and both are not NULL
+                    if (copiedTable->object[j] != NULL && j != i) { //checks if same obj is being compared and both are not NULL
                         //calculate distance between two objects
                         double distance = phylib_distance(new, copiedTable->object[j]);
+                        copiedTable->time += PHYLIB_SIM_RATE; //update time in table
 
-                        if (distance < 0.0) {
+                        if (distance <= 0.0) {
                             //apply bounce and update table
                             //printf("starting bounce fn inside segement fn\n");
                             phylib_bounce(&new, &(copiedTable->object[j]));
+                            copiedTable->time += PHYLIB_SIM_RATE; //update time in table   
                             //update object
-                            phylib_copy_object(&copiedTable->object[i], &new);
-                            //printf("finishing bounce fn\n");
-                            copiedTable->time += PHYLIB_SIM_RATE; //update time in table    
+                            //printf("finishing bounce fn\n"); 
                             return copiedTable;
                         }
                     }  
                 }
+                free(new);
+                copiedTable->time += PHYLIB_SIM_RATE; //update time in table
             }
         }
         
