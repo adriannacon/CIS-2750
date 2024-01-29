@@ -317,9 +317,9 @@ void phylib_roll( phylib_object *new, phylib_object *old, double time){
 
     //p = p1 + v1t + 0.5a1t^2
     //position update for x direction
-    new->obj.rolling_ball.pos.x = old->obj.rolling_ball.pos.x +  (old->obj.rolling_ball.vel.x * time) + (0.5 * old->obj.rolling_ball.acc.x * time * time);
+    new->obj.rolling_ball.pos.x = old->obj.rolling_ball.pos.x + (old->obj.rolling_ball.vel.x * time) + (0.5 * old->obj.rolling_ball.acc.x * time * time);
     //position update for y direction
-    new->obj.rolling_ball.pos.y = old->obj.rolling_ball.pos.y +  (old->obj.rolling_ball.vel.y * time) + (0.5 * old->obj.rolling_ball.acc.y * time * time);
+    new->obj.rolling_ball.pos.y = old->obj.rolling_ball.pos.y + (old->obj.rolling_ball.vel.y * time) + (0.5 * old->obj.rolling_ball.acc.y * time * time);
 
     //v = v1 + a1t
     //velocity update for x direction
@@ -408,6 +408,23 @@ void phylib_rolling_ball_bounce( phylib_object *a, phylib_object *b){
         b->obj.rolling_ball.acc.x = -b->obj.rolling_ball.vel.x / bSpeed * PHYLIB_DRAG;
         b->obj.rolling_ball.acc.y = -b->obj.rolling_ball.vel.y / bSpeed * PHYLIB_DRAG;
     }
+    printf( "ROLLING_BALL A IN BOUNCE FN (%d,%6.1lf,%6.1lf,%6.1lf,%6.1lf,%6.1lf,%6.1lf)\n",
+              a->obj.rolling_ball.number,
+              a->obj.rolling_ball.pos.x,
+              a->obj.rolling_ball.pos.y,
+              a->obj.rolling_ball.vel.x,
+              a->obj.rolling_ball.vel.y,
+              a->obj.rolling_ball.acc.x,
+              a->obj.rolling_ball.acc.y );
+
+    printf( "ROLLING_BALL B IN BOUNCE FN (%d,%6.1lf,%6.1lf,%6.1lf,%6.1lf,%6.1lf,%6.1lf)\n",
+              b->obj.rolling_ball.number,
+              b->obj.rolling_ball.pos.x,
+              b->obj.rolling_ball.pos.y,
+              b->obj.rolling_ball.vel.x,
+              b->obj.rolling_ball.vel.y,
+              b->obj.rolling_ball.acc.x,
+              b->obj.rolling_ball.acc.y );
 }
 
 void phylib_bounce( phylib_object **a, phylib_object **b){
@@ -450,7 +467,6 @@ void phylib_bounce( phylib_object **a, phylib_object **b){
             (*b)->obj.rolling_ball.acc = (phylib_coord){0, 0}; //set accs to (0, 0)
             //auto moves to next case
         case PHYLIB_ROLLING_BALL:
-        ; //idk why this fixes my error but it does
             //use helper fn phylib_rolling_ball_bounce
             phylib_rolling_ball_bounce(*a, *b);
             break;
