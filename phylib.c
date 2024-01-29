@@ -488,7 +488,7 @@ unsigned char phylib_rolling( phylib_table *t){
     unsigned char numRolling = 0; //counter
 
     //iterate through object array elements
-    for (int i =0; i < PHYLIB_MAX_OBJECTS; i++){
+    for (int i = 0; i < PHYLIB_MAX_OBJECTS; i++){
         //checks if obj exists and is of type rolling_ball
         if (t->object[i] != NULL && t->object[i]->type == PHYLIB_ROLLING_BALL){
              numRolling++; //adds one to number of rolling_balls
@@ -498,7 +498,7 @@ unsigned char phylib_rolling( phylib_table *t){
     return numRolling;
 }
 
-/*phylib_table *phylib_segment(phylib_table *table) {
+phylib_table *phylib_segment(phylib_table *table) {
     //printf("Starting to segment fn\n");
     if (table == NULL) { //checks if null
         return NULL;
@@ -578,68 +578,6 @@ unsigned char phylib_rolling( phylib_table *t){
     }
 
     return copiedTable;
-}*/
-
-phylib_table *phylib_segment(phylib_table *table) {
-    if (table == NULL || phylib_rolling(table) == 0) {
-        // No rolling balls on the table
-        return NULL;
-    }
-
-    phylib_table *copiedTable = phylib_copy_table(table);
-    if (copiedTable == NULL) {
-        // Failed to copy the table
-        return NULL;
-    }
-
-    double currentTime;
-    for (currentTime = PHYLIB_SIM_RATE; currentTime <= PHYLIB_MAX_TIME; currentTime += PHYLIB_SIM_RATE) {
-        int anyCollision = 0;
-        int anyRolling = 0;
-
-        // Update positions and velocities of rolling balls
-        for (int i = 0; i < PHYLIB_MAX_OBJECTS; i++) {
-            phylib_object *obj = copiedTable->object[i];
-            if (obj != NULL && obj->type == PHYLIB_ROLLING_BALL) {
-                phylib_roll(obj, obj, PHYLIB_SIM_RATE);
-                anyRolling = 1;
-            }
-        }
-
-        if (!anyRolling) {
-            // No balls are rolling anymore
-            break;
-        }
-
-        // Check for collisions and stopping
-        for (int i = 0; i < PHYLIB_MAX_OBJECTS; i++) {
-            phylib_object *obj = copiedTable->object[i];
-            if (obj != NULL && obj->type == PHYLIB_ROLLING_BALL) {
-                for (int j = 0; j < PHYLIB_MAX_OBJECTS; j++) {
-                    if (i != j && copiedTable->object[j] != NULL) {
-                        double distance = phylib_distance(obj, copiedTable->object[j]);
-                        if (distance <= 0.0) {
-                            phylib_bounce(&obj, &copiedTable->object[j]);
-                            anyCollision = 1;
-                            break;
-                        }
-                    }
-                }
-
-                if (phylib_stopped(obj)) {
-                    obj->type = PHYLIB_STILL_BALL;
-                    break;
-                }
-            }
-        }
-
-        if (anyCollision) {
-            // A collision occurred
-            break;
-        }
-    }
-
-    copiedTable->time = currentTime;
-    return copiedTable;
 }
+
 
