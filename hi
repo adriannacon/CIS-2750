@@ -1,0 +1,52 @@
+phylib_table *phylib_segment(phylib_table *table) {
+    if (table == NULL || phylib_rolling(table) == 0) {
+        return NULL;
+    }
+
+    phylib_table *copy = phylib_copy_table(table);
+    if (copy == NULL) {
+        return NULL;
+    }
+
+    int rolling;
+    double time;
+    for (time = 0.0; time <= PHYLIB_MAX_TIME; time += PHYLIB_SIM_RATE) {
+        rolling = 0;
+
+        for (int i = 0; i < PHYLIB_MAX_OBJECTS; i++) {
+            if (copy->object[i] != NULL && copy->object[i]->type == PHYLIB_ROLLING_BALL) {
+                rolling = 1;
+                phylib_object *old_obj = copy->object[i];
+                phylib_object temp_obj = *old_obj; // Create a temporary copy to roll
+                phylib_roll(&temp_obj, old_obj, PHYLIB_SIM_RATE);
+                copy->time = time;
+
+                // Check for collisions
+                for (int j = 0; j < PHYLIB_MAX_OBJECTS; j++) {
+                    if (i != j && copy->object[j] != NULL) {
+                        double distance = phylib_distance(&temp_obj, copy->object[j]);
+                        if (distance < 0.0) {
+                            phylib_bounce(&copy->object[i], &copy->object[j]);
+                            copy->time = time;
+                            break;
+                        }
+                    }
+                }
+
+                // Update object only if it's still rolling
+                if (phylib_stopped(&temp_obj) == 0) {
+                    *old_obj = temp_obj;
+                } else {
+                    rolling = 0;
+                }
+            }
+        }
+
+        if (!rolling) {
+            copy->time = time;
+            break; // Stop the simulation if no balls are rolling
+        }
+    }
+
+    return copy;
+}

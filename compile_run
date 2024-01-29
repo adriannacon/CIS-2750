@@ -1,0 +1,13 @@
+upload to gitlab
+1. add file to staged commit
+2. input git push --all --follow-tags into terminal
+3. input username and password
+
+compile
+1. export LD_LIBRARY_PATH=`pwd`
+2. make clean
+3. make test
+4. ./test
+
+valgrind
+valgrind --leak-check=full ./test
