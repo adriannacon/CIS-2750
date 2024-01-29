@@ -105,8 +105,6 @@ double phylib_dot_product( phylib_coord a, phylib_coord b);
 double phylib_distance( phylib_object *obj1, phylib_object *obj2);
 
 //Part III fn declarations
-double phylib_position_update(double currPos, double velocity, double acceleration, double time); //added helper fn that calculates a position update
-double phylib_vel_update(double currVel, double acceleration, double time); //added helper fn that calculates a velocity update
 void phylib_roll( phylib_object *new, phylib_object *old, double time);
 unsigned char phylib_stopped( phylib_object *object);
 void phylib_rolling_ball_bounce( phylib_object *a, phylib_object *b); //added fn to help calculate the bounce of a rolling ball

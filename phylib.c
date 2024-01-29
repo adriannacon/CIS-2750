@@ -306,21 +306,6 @@ double phylib_distance( phylib_object *obj1, phylib_object *obj2){
 
 //PART 3 Functions!
 
-double phylib_position_update( double currPos, double velocity, double acceleration, double time){
-    //p = p1 + v1t + 0.5a1t^2
-    double updatedPos = currPos + (velocity*time) + (0.5*acceleration*time*time);
-
-    return updatedPos;
-
-}
-
-double phylib_vel_update( double currVel, double acceleration, double time){
-    //v = v1 + a1t
-    double updatedVel = currVel + (acceleration*time);
-
-    return updatedVel;
-}
-
 void phylib_roll( phylib_object *new, phylib_object *old, double time){
     if (new == NULL || old == NULL){ //check if inputted object is NULL
         return; //do nothing
@@ -330,22 +315,17 @@ void phylib_roll( phylib_object *new, phylib_object *old, double time){
         return; //do nothing
     }
 
+    //p = p1 + v1t + 0.5a1t^2
     //position update for x direction
-    double xPos = phylib_position_update(old->obj.rolling_ball.pos.x, old->obj.rolling_ball.vel.x, old->obj.rolling_ball.acc.x, time);
-    new->obj.rolling_ball.pos.x = xPos;
-
+    new->obj.rolling_ball.pos.x = old->obj.rolling_ball.pos.x +  (old->obj.rolling_ball.vel.x * time) + (0.5 * old->obj.rolling_ball.acc.x * time * time);
     //position update for y direction
-    double yPos = phylib_position_update(old->obj.rolling_ball.pos.y, old->obj.rolling_ball.vel.y, old->obj.rolling_ball.acc.y, time);
-    new->obj.rolling_ball.pos.y = yPos;
+    new->obj.rolling_ball.pos.y = old->obj.rolling_ball.pos.y +  (old->obj.rolling_ball.vel.y * time) + (0.5 * old->obj.rolling_ball.acc.y * time * time);
 
     //v = v1 + a1t
     //velocity update for x direction
-    double xVel = phylib_vel_update(old->obj.rolling_ball.vel.x, old->obj.rolling_ball.acc.x, time);
-    new->obj.rolling_ball.vel.x = xVel;
-
+    new->obj.rolling_ball.vel.x = old->obj.rolling_ball.vel.x + old->obj.rolling_ball.acc.x * time;
     //velocity update for y direction
-    double yVel = phylib_vel_update(old->obj.rolling_ball.vel.y, old->obj.rolling_ball.acc.y, time);
-    new->obj.rolling_ball.vel.y = yVel;
+    new->obj.rolling_ball.vel.y = old->obj.rolling_ball.vel.y + old->obj.rolling_ball.acc.y * time;
 
     //check for x velocity sign change by multiplying new and old vels if neg then need to set to 0.0
     //Reference: this method was discussed in class by Dr. Stefan Kremer
