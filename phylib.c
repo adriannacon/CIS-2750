@@ -327,6 +327,9 @@ void phylib_roll( phylib_object *new, phylib_object *old, double time){
     //velocity update for y direction
     new->obj.rolling_ball.vel.y = old->obj.rolling_ball.vel.y + old->obj.rolling_ball.acc.y * time;
 
+    //printf( "ROLLING_BALL OLD X ACC IN ROLL FN (%6.1lf)", old->obj.rolling_ball.acc.x);
+    //printf( "ROLLING_BALL OLD Y ACC IN ROLL FN (%6.1lf)", old->obj.rolling_ball.acc.y);
+
     //check for x velocity sign change by multiplying new and old vels if neg then need to set to 0.0
     //Reference: this method was discussed in class by Dr. Stefan Kremer
     if ((new->obj.rolling_ball.vel.x * old->obj.rolling_ball.vel.x) < 0.0){
