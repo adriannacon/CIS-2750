@@ -369,67 +369,6 @@ unsigned char phylib_stopped( phylib_object *object){
     return 0; //ball not converted to still
 }
 
-void phylib_rolling_ball_bounce( phylib_object *a, phylib_object *b){
-    //calculate position of a wrt b
-    phylib_coord r_ab = phylib_sub(a->obj.rolling_ball.pos, b->obj.rolling_ball.pos); //phylib_sub will find difference
-
-    //calculate relative vel of a wrt b
-    phylib_coord v_rel = phylib_sub(a->obj.rolling_ball.vel, b->obj.rolling_ball.vel); //phylib_sub will find difference
-
-    //calculate normal vector
-    //divide x and y of r_ab by length of r_ab
-    double length_r_ab = phylib_length(r_ab); //fn will calculate length
-    phylib_coord n = {(r_ab.x / length_r_ab), (r_ab.y / length_r_ab)};
-
-    //calculate the ratio of the relative velocity by dot product
-    double v_rel_n = phylib_dot_product(v_rel, n); //fn will calculate dot product
-
-    //update the x and y velocities of a
-    //velocity = velocity - v_rel_n*n.x
-    a->obj.rolling_ball.vel.x -= v_rel_n * n.x;
-    a->obj.rolling_ball.vel.y -= v_rel_n * n.y;
-
-    //update the x and y velocities of b
-    //velocity = velocity + v_rel_n*n.x
-    b->obj.rolling_ball.vel.x += v_rel_n * n.x;
-    b->obj.rolling_ball.vel.y += v_rel_n * n.y;
-
-    //compute speeds of a & b -> length of its velocity
-    double aSpeed = phylib_length(a->obj.rolling_ball.vel);
-    double bSpeed = phylib_length(b->obj.rolling_ball.vel);
-
-    //check if a's speed is GREATER THAN epsilon
-    //if true acc = (-vel/speed)*DRAG
-    if (aSpeed > PHYLIB_VEL_EPSILON){
-        a->obj.rolling_ball.acc.x = -a->obj.rolling_ball.vel.x / aSpeed * PHYLIB_DRAG;
-        a->obj.rolling_ball.acc.y = -a->obj.rolling_ball.vel.y / aSpeed * PHYLIB_DRAG;
-    }
-    
-    //check if b's speed is GREATER THAN epsilon
-    //if true acc = (-vel/speed)*DRAG
-    if (bSpeed > PHYLIB_VEL_EPSILON){
-        b->obj.rolling_ball.acc.x = -b->obj.rolling_ball.vel.x / bSpeed * PHYLIB_DRAG;
-        b->obj.rolling_ball.acc.y = -b->obj.rolling_ball.vel.y / bSpeed * PHYLIB_DRAG;
-    }
-    printf( "ROLLING_BALL A IN BOUNCE FN (%d,%6.1lf,%6.1lf,%6.1lf,%6.1lf,%6.1lf,%6.1lf)\n",
-              a->obj.rolling_ball.number,
-              a->obj.rolling_ball.pos.x,
-              a->obj.rolling_ball.pos.y,
-              a->obj.rolling_ball.vel.x,
-              a->obj.rolling_ball.vel.y,
-              a->obj.rolling_ball.acc.x,
-              a->obj.rolling_ball.acc.y );
-
-    printf( "ROLLING_BALL B IN BOUNCE FN (%d,%6.1lf,%6.1lf,%6.1lf,%6.1lf,%6.1lf,%6.1lf)\n",
-              b->obj.rolling_ball.number,
-              b->obj.rolling_ball.pos.x,
-              b->obj.rolling_ball.pos.y,
-              b->obj.rolling_ball.vel.x,
-              b->obj.rolling_ball.vel.y,
-              b->obj.rolling_ball.acc.x,
-              b->obj.rolling_ball.acc.y );
-}
-
 void phylib_bounce( phylib_object **a, phylib_object **b){
     //can assume object a is ALWAYS a rolling ball
 
@@ -470,10 +409,49 @@ void phylib_bounce( phylib_object **a, phylib_object **b){
             (*b)->obj.rolling_ball.acc = (phylib_coord){0, 0}; //set accs to (0, 0)
             //auto moves to next case
         case PHYLIB_ROLLING_BALL:
-            //use helper fn phylib_rolling_ball_bounce
-            phylib_rolling_ball_bounce(*a, *b);
-            break;
-        
+        ;
+            //calculate position of a wrt b
+            phylib_coord r_ab = phylib_sub((*a)->obj.rolling_ball.pos, (*b)->obj.rolling_ball.pos); //phylib_sub will find difference
+
+            //calculate relative vel of a wrt b
+            phylib_coord v_rel = phylib_sub((*a)->obj.rolling_ball.vel, (*b)->obj.rolling_ball.vel); //phylib_sub will find difference
+
+            //calculate normal vector
+            //divide x and y of r_ab by length of r_ab
+            double length_r_ab = phylib_length(r_ab); //fn will calculate length
+            phylib_coord n = {(r_ab.x / length_r_ab), (r_ab.y / length_r_ab)};
+
+            //calculate the ratio of the relative velocity by dot product
+            double v_rel_n = phylib_dot_product(v_rel, n); //fn will calculate dot product
+
+            //update the x and y velocities of a
+            //velocity = velocity - v_rel_n*n.x
+            (*a)->obj.rolling_ball.vel.x -= v_rel_n * n.x;
+            (*a)->obj.rolling_ball.vel.y -= v_rel_n * n.y;
+
+            //update the x and y velocities of b
+            //velocity = velocity + v_rel_n*n.x
+            (*b)->obj.rolling_ball.vel.x += v_rel_n * n.x;
+            (*b)->obj.rolling_ball.vel.y += v_rel_n * n.y;
+
+            //compute speeds of a & b -> length of its velocity
+            double aSpeed = phylib_length((*a)->obj.rolling_ball.vel);
+            double bSpeed = phylib_length((*b)->obj.rolling_ball.vel);
+
+            //check if a's speed is GREATER THAN epsilon
+            //if true acc = (-vel/speed)*DRAG
+            if (aSpeed > PHYLIB_VEL_EPSILON){
+                (*a)->obj.rolling_ball.acc.x = -(*a)->obj.rolling_ball.vel.x / aSpeed * PHYLIB_DRAG;
+                (*a)->obj.rolling_ball.acc.y = -(*a)->obj.rolling_ball.vel.y / aSpeed * PHYLIB_DRAG;
+            }
+            
+            //check if b's speed is GREATER THAN epsilon
+            //if true acc = (-vel/speed)*DRAG
+            if (bSpeed > PHYLIB_VEL_EPSILON){
+                (*b)->obj.rolling_ball.acc.x = -(*b)->obj.rolling_ball.vel.x / bSpeed * PHYLIB_DRAG;
+                (*b)->obj.rolling_ball.acc.y = -(*b)->obj.rolling_ball.vel.y / bSpeed * PHYLIB_DRAG;
+            }
+
         default:
         //do nothing case
         break;
@@ -548,9 +526,9 @@ phylib_table *phylib_segment(phylib_table *table) {
                         }
                     }  
                 }
-                //break if rolling balls have stopped
+                //if rolling balls have stopped
                 if (phylib_stopped(&temp) == 0){
-                    *current = temp;
+                    *current = temp; //set current to temp obj
                 } else{
                     rolling = 0; // no rolling balls
                 }

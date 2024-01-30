@@ -107,7 +107,6 @@ double phylib_distance( phylib_object *obj1, phylib_object *obj2);
 //Part III fn declarations
 void phylib_roll( phylib_object *new, phylib_object *old, double time);
 unsigned char phylib_stopped( phylib_object *object);
-void phylib_rolling_ball_bounce( phylib_object *a, phylib_object *b); //added fn to help calculate the bounce of a rolling ball
 void phylib_bounce( phylib_object **a, phylib_object **b);
 unsigned char phylib_rolling( phylib_table *t);
 phylib_table *phylib_segment( phylib_table *table);
