@@ -496,6 +496,11 @@ phylib_table *phylib_segment(phylib_table *table) {
         return NULL;
     }
 
+    //checks to make sure balls are rolling
+    if( phylib_rolling(copiedTable) == 0){ //balls are rolling
+        return NULL;   
+    }
+
     //flags
     int rolling = 1; //obj is rolling ball
 
