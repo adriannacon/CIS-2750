@@ -418,8 +418,7 @@ void phylib_bounce( phylib_object **a, phylib_object **b){
 
             //calculate normal vector
             //divide x and y of r_ab by length of r_ab
-            double length_r_ab = phylib_length(r_ab); //fn will calculate length
-            phylib_coord n = {(r_ab.x / length_r_ab), (r_ab.y / length_r_ab)};
+            phylib_coord n = {(r_ab.x / phylib_length(r_ab)), (r_ab.y / phylib_length(r_ab))};
 
             //calculate the ratio of the relative velocity by dot product
             double v_rel_n = phylib_dot_product(v_rel, n); //fn will calculate dot product
@@ -443,6 +442,8 @@ void phylib_bounce( phylib_object **a, phylib_object **b){
             if (aSpeed > PHYLIB_VEL_EPSILON){
                 (*a)->obj.rolling_ball.acc.x = -(*a)->obj.rolling_ball.vel.x / aSpeed * PHYLIB_DRAG;
                 (*a)->obj.rolling_ball.acc.y = -(*a)->obj.rolling_ball.vel.y / aSpeed * PHYLIB_DRAG;
+            } else {
+                (*a)->obj.rolling_ball.acc = (phylib_coord){0, 0};
             }
             
             //check if b's speed is GREATER THAN epsilon
@@ -450,7 +451,10 @@ void phylib_bounce( phylib_object **a, phylib_object **b){
             if (bSpeed > PHYLIB_VEL_EPSILON){
                 (*b)->obj.rolling_ball.acc.x = -(*b)->obj.rolling_ball.vel.x / bSpeed * PHYLIB_DRAG;
                 (*b)->obj.rolling_ball.acc.y = -(*b)->obj.rolling_ball.vel.y / bSpeed * PHYLIB_DRAG;
+            } else {
+                (*b)->obj.rolling_ball.acc = (phylib_coord){0, 0};
             }
+            break;
 
         default:
         //do nothing case
